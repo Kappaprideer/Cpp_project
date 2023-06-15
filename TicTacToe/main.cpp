@@ -9,10 +9,8 @@ public:
     {
         setWindowTitle("Tic-Tac-Toe");
 
-        // Create the main grid layout
         QGridLayout *mainLayout = new QGridLayout(this);
 
-        // Create the buttons for the Tic-Tac-Toe grid
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 3; ++col) {
                 buttons[row][col] = new QPushButton(this);
@@ -23,7 +21,15 @@ public:
             }
         }
 
-        // Initialize game state
+        reset = new QPushButton(this);
+        reset->setText("Reset Game");
+        mainLayout->addWidget(reset, 4,1);
+        connect(reset, &QPushButton::clicked, this, [this]() { resetGame();});
+
+        showCurrentPlayer = new QLabel();
+        mainLayout->addWidget(showCurrentPlayer, 1,4);
+        this->updateShowCurrentPlayer();
+
         resetGame();
     }
 
@@ -31,17 +37,20 @@ private slots:
     void buttonClicked(int row, int col)
     {
         if (buttons[row][col]->text().isEmpty() && !gameOver) {
-            // Update the button text based on the current player
             buttons[row][col]->setText(currentPlayer == PlayerX ? "X" : "O");
 
-            // Check for a winning condition
             if (checkWinCondition(row, col)) {
                 gameOver = true;
+
                 QString message = currentPlayer == PlayerX ? "Player X wins!" : "Player O wins!";
-                QMessageBox::information(this, "Game Over", message);
+
+                QMessageBox messageBox(this);
+                messageBox.setWindowTitle("Game Over");
+                messageBox.setText(message);
+                messageBox.exec();
             } else {
-                // Switch to the next player
                 currentPlayer = (currentPlayer == PlayerX) ? PlayerO : PlayerX;
+                this->updateShowCurrentPlayer();
             }
         }
     }
@@ -49,7 +58,8 @@ private slots:
 private:
     enum Player { PlayerX, PlayerO };
 
-    QPushButton *buttons[3][3];
+    QPushButton *buttons[3][3], *reset;
+    QLabel *showCurrentPlayer;
     Player currentPlayer;
     bool gameOver;
 
@@ -58,12 +68,16 @@ private:
         currentPlayer = PlayerX;
         gameOver = false;
 
-        // Clear the button texts
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 3; ++col) {
                 buttons[row][col]->setText("");
             }
         }
+        updateShowCurrentPlayer();
+    }
+
+    void updateShowCurrentPlayer(){
+        showCurrentPlayer->setText("Player: " + QString(currentPlayer == PlayerX ? "X" : "O"));
     }
 
     bool checkWinCondition(int row, int col)
@@ -72,44 +86,28 @@ private:
 
         // Check horizontal line
         for (int c = 0; c < 3; ++c) {
-            if (buttons[row][c]->text() != playerSymbol) {
-                break;
-            }
-            if (c == 2) {
-                return true;
-            }
+            if (buttons[row][c]->text() != playerSymbol) break;
+            if (c == 2) return true;
         }
 
         // Check vertical line
         for (int r = 0; r < 3; ++r) {
-            if (buttons[r][col]->text() != playerSymbol) {
-                break;
-            }
-            if (r == 2) {
-                return true;
-            }
+            if (buttons[r][col]->text() != playerSymbol)break;
+            if (r == 2) return true;
         }
 
         // Check diagonal lines
         if (row == col) {
             for (int i = 0; i < 3; ++i) {
-                if (buttons[i][i]->text() != playerSymbol) {
-                    break;
-                }
-                if (i == 2) {
-                    return true;
-                }
+                if (buttons[i][i]->text() != playerSymbol) break;
+                if (i == 2) return true;
             }
         }
 
         if (row + col == 2) {
             for (int i = 0; i < 3; ++i) {
-                if (buttons[i][2 - i]->text() != playerSymbol) {
-                    break;
-                }
-                if (i == 2) {
-                    return true;
-                }
+                if (buttons[i][2 - i]->text() != playerSymbol) break;
+                if (i == 2) return true;
             }
         }
 
